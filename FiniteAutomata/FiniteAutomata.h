@@ -33,7 +33,7 @@ private:
 	bool check(const state& t);
 	std::vector<Trnasition> Trans;
 	//std::vector<state> initial;
-	std::vector<int> accepting;
+	std::vector<int> F;
 	std::vector<state> Q;
 	std::vector<label> V;
 	size_t num_state;
