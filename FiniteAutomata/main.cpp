@@ -11,8 +11,8 @@ int main(size_t argc,char *argv[])
 		{
 			std::ifstream infile;
 			infile.open(argv[2]);
+			fa1.quite = true;
 			infile >> fa1;
-
 		}
 		else
 		{

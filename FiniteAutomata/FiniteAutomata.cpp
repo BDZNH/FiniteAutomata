@@ -53,14 +53,21 @@ bool FiniteAutomata::check(const state& t)
 
 std::istream& operator>>(std::istream& input, FiniteAutomata& D)
 {
+	if (!D.quite)
+	{
+		std::cout << "input the number of state of the FA (type: unsigned int):" << std::endl;
+	}
 	
-	std::cout << "input the number of state of the FA (type: unsigned int):" << std::endl;
 	input >> D.num_state;
 	state temp;
 	
 	std::vector<state>::iterator result;
 	std::vector<label>::iterator result2;
-	std::cout << "input the accepted state of the FA(type: unsigned int ,end with -1):" << std::endl;
+	if (!D.quite)
+	{
+		std::cout << "input the accepted state of the FA(type: unsigned int ,end with -1):" << std::endl;
+	}
+	
 	while (input >> temp)
 	{
 		if (temp == -1)
@@ -80,8 +87,13 @@ std::istream& operator>>(std::istream& input, FiniteAutomata& D)
 		}
 
 	}
-	std::cout << "input the transition relation of the FA(type: unsigned int ,end with -1)" << std::endl;
-	std::cout << "Example: 2 0 1 (for transition labeled 0 from state 2 to state 1).  :" << std::endl;
+
+	if (!D.quite)
+	{
+		std::cout << "input the transition relation of the FA(type: unsigned int ,end with -1)" << std::endl;
+		std::cout << "Example: 2 0 1 (for transition labeled 0 from state 2 to state 1).  :" << std::endl;
+	}
+	
 	Trnasition trans;
 	
 	// 输入转移关系

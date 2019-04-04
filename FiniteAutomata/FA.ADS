@@ -3,10 +3,22 @@
 FA
 
 State size:
-0
+5
 
 Marker states:
+3
+4
 
 Vocal states:
 
 Transitions:
+0 1 0
+0 0 1
+1 0 2
+1 1 0
+2 0 3
+2 1 4
+3 0 3
+3 1 4
+4 0 1
+4 1 0

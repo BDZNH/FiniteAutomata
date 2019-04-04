@@ -1,4 +1,9 @@
-﻿#ifndef FiniteAutomata_H
+﻿/******************************************************************
+一个用来生成TCT自动工具箱所用的ADS文件的小工具。
+******************************************************************/
+
+
+#ifndef FiniteAutomata_H
 #define FiniteAutomata_H
 
 #include <iostream>
