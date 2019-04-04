@@ -1,9 +1,10 @@
-#include "FiniteAutomata.h"
+ï»¿#include "FiniteAutomata.h"
 
 
 
 FiniteAutomata::FiniteAutomata()
 {
+	quite = false;
 }
 
 
@@ -16,11 +17,11 @@ size_t FiniteAutomata::size()
 	return Q.size();
 }
 
-bool FiniteAutomata::out()
+bool FiniteAutomata::perform()
 {
 	std::ofstream ofile;
 	ofile.open("FA.ADS");
-	//Ó¦µ±¿¼ÂÇÎ´ÄÜ³É¹¦´ò¿ªµÄÇé¿ö¡£
+	//åº”å½“è€ƒè™‘æœªèƒ½æˆåŠŸæ‰“å¼€çš„æƒ…å†µã€‚
 	ofile << "# CTCT ADS auto-generated\n" << std::endl;
 	ofile << "FA\n" << std::endl;
 	ofile << "State size:" << std::endl;
@@ -83,14 +84,15 @@ std::istream& operator>>(std::istream& input, FiniteAutomata& D)
 	std::cout << "Example: 2 0 1 (for transition labeled 0 from state 2 to state 1).  :" << std::endl;
 	Trnasition trans;
 	
+	// è¾“å…¥è½¬ç§»å…³ç³»
 	while (input >> trans.Q0)
 	{
 		if (trans.Q0 == -1)
 			break;
 		input >> trans.T >> trans.Q1;
-		if (D.check(trans.Q0) && D.check(trans.T) && D.check(trans.Q1)) //Èç¹ûÊäÈëµÄ×ªÒÆ¹ØÏµÓĞĞ§
+		if (D.check(trans.Q0) && D.check(trans.T) && D.check(trans.Q1)) //å¦‚æœè¾“å…¥çš„è½¬ç§»å…³ç³»æœ‰æ•ˆ
 		{
-			// ½«×´Ì¬´æÈë×´Ì¬¼¯
+			// å°†çŠ¶æ€å­˜å…¥çŠ¶æ€é›†
 			D.Trans.push_back(trans);
 			result = std::find(D.Q.begin(), D.Q.end(), trans.Q0);
 			if (result == D.Q.end())
@@ -103,7 +105,7 @@ std::istream& operator>>(std::istream& input, FiniteAutomata& D)
 				D.Q.push_back(trans.Q1);
 			}
 
-			// ½«¡°ÊäÈë×Ö·û¡±±£´æ
+			// å°†â€œè¾“å…¥å­—ç¬¦â€ä¿å­˜
 			result2 = std::find(D.V.begin(), D.V.end(), trans.T);
 			if (result2 == D.V.end())
 			{
@@ -124,6 +126,6 @@ std::istream& operator>>(std::istream& input, FiniteAutomata& D)
 std::ostream & operator<<(std::ostream & output, FiniteAutomata & D)
 {
 	output << D.size() << std::endl;
-	// TODO: ÔÚ´Ë´¦²åÈë return Óï¾ä
+	// TODO: åœ¨æ­¤å¤„æ’å…¥ return è¯­å¥
 	return output;
 }

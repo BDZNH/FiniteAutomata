@@ -1,12 +1,10 @@
-#ifndef FiniteAutomata_H
+﻿#ifndef FiniteAutomata_H
 #define FiniteAutomata_H
 
 #include <iostream>
 #include <vector>
 #include <fstream>
 
-
-//using namespace std;
 
 typedef int state;
 typedef size_t label;
@@ -25,10 +23,10 @@ public:
 	FiniteAutomata();
 	~FiniteAutomata();
 	size_t size();
-	bool out();
+	bool perform();
 	friend std::istream& operator>>(std::istream& input, FiniteAutomata& D);
 	friend std::ostream& operator<<(std::ostream& output, FiniteAutomata& D);
-	
+	bool quite;
 private:
 	bool check(const state& t);
 	std::vector<Trnasition> Trans;
