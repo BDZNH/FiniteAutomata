@@ -19,33 +19,26 @@ size_t FiniteAutomata::size()
 
 bool FiniteAutomata::perform()
 {
-	/*std::ofstream ofile;
-	ofile.open("FA.ADS");*/
-	////应当考虑未能成功打开的情况。
-	//ofile << "# CTCT ADS auto-generated\n" << std::endl;
-	//ofile << "FA\n" << std::endl;
-	//ofile << "State size (State set will be (0,1....,size-1)):\n# <-- Enter state size, in range 0 to 2000000, on line below." << std::endl;
-	//ofile << num_state << std::endl;
-	//ofile << "\nMarker states:\n# <-- Enter marker states, one per line.\n# To mark all states, enter *.\n# If no marker states, leave line blank.\n# End marker list with blank line." << std::endl;
-	//auto it = F.begin();
-	//for (; it != F.end(); ++it)
-	//{
-	//	ofile << *it << std::endl;
-	//}
-	//ofile << "\nVocal states:\n# <-- Enter vocal output states, one per line.\n# Format: State  Vocal_Output.Vocal_Output in range 10 to 99.\n# Example : 0 10\n# If no vocal states, leave line blank.\n# End vocal list with blank line." << std::endl;
-	//ofile << "Transitions:\n# <-- Enter transition triple, one per line.\n# Format: Exit_(Source)_State  Transition_Label  Entrance_(Target)_State.\n# Transition_Label in range 0 to 999.\n# Example: 2 0 1 (for transition labeled 0 from state 2 to state 1)." << std::endl;
-	////auto itt = Trans.begin();
-	//for (size_t i = 0; i < Trans.size(); ++i)
-	//{
-	//	ofile << Trans[i].Q0 << " " << Trans[i].T << " " << Trans[i].Q1 << std::endl;
-	//}
-
 	// 输出数据到默认的文件“FA.ADS”
 	std::ofstream ofile;
 	ofile.open("FA.ADS");
 	if (!ofile.is_open())
 	{
 		std::cout << "Can't open file: FA.ADS" << std::endl;
+		return false;
+	}
+	ofile << (*this);
+	ofile.close();
+	return true;
+}
+
+bool FiniteAutomata::perform(char * filepath)
+{
+	std::ofstream ofile;
+	ofile.open(filepath);
+	if (!ofile.is_open())
+	{
+		std::cout << "Can't open file: " << filepath << std::endl;
 		return false;
 	}
 	ofile << (*this);

@@ -17,6 +17,7 @@ int main(size_t argc,char *argv[])
 				usage();
 				return 1;
 			}
+
 			infile.open(argv[2]);
 			if (!infile.is_open())
 			{
@@ -26,6 +27,8 @@ int main(size_t argc,char *argv[])
 			}
 			fa1.quite = true;
 			infile >> fa1;
+
+			// 如果指定了“-o”参数且有效的话，则输出到指定文件
 			if (argc == 5 && strcmp(argv[3], "-o") == 0 )
 			{
 				if (strcmp(argv[4], "") == 0)
@@ -33,17 +36,10 @@ int main(size_t argc,char *argv[])
 					usage();
 					return 1;
 				}
-				std::ofstream outfile;
-				outfile.open(argv[4]);
-				if (!outfile.is_open())
+				if (fa1.perform(argv[4]))
 				{
-					std::cout << "No such a file: " << argv[4] << std::endl;
-					usage();
-					return 1;
+					std::cout << "Success!" << std::endl;
 				}
-				outfile << fa1;
-				outfile.close();
-				std::cout << "Success!" << std::endl;
 				return 0;
 			}
 		}
@@ -70,7 +66,7 @@ void usage()
 {
 	std::cout << "\n____ A tiny tool that generate ADS file for TCT tool____ " << std::endl;
 	std::cout << "Usage: command option argument " << std::endl;
-	std::cout << "    option: -i , the input file " << std::endl;
-	std::cout << "            -o , the output file " << std::endl;
+	std::cout << "option: -i , the input file " << std::endl;
+	std::cout << "        -o , the output file " << std::endl;
 	std::cout << "Example: FiniteAutomata.exe -i data.txt -o FA.ADS \n" << std::endl;
 }

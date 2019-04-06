@@ -29,6 +29,7 @@ public:
 	~FiniteAutomata();
 	size_t size();
 	bool perform();
+	bool perform(char *filepath);
 	friend std::istream& operator>>(std::istream& input, FiniteAutomata& D);
 	friend std::ostream& operator<<(std::ostream& output, FiniteAutomata& D);
 	bool quite;
