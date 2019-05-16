@@ -11,25 +11,38 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <algorithm>
 #include <assert.h>
 
 
 typedef int state;
 typedef int label;
 
-struct Trnasition
+struct Transition
 {
 	state Q0;
 	label T;
 	state Q1;
-	Trnasition() :Q0(0), T(0), Q1(0) {};
-	bool operator==(const Trnasition &D)
+	Transition() :Q0(0), T(0), Q1(0) {};
+	bool operator==(const Transition &D)
 	{
 		return (Q0 == D.Q0&&T == D.T&&Q1 == D.Q1);
 	}
-	bool operator!=(const Trnasition &D)
+	bool operator!=(const Transition &D)
 	{
-		return !(Q0 == D.Q0&&T == D.T&&Q1 == D.Q1);
+		//return !(Q0 == D.Q0&&T == D.T&&Q1 == D.Q1);
+		return !(*this==D);
+	}
+	bool operator<(const Transition &D)
+	{
+		if (Q0 == D.Q0)
+		{
+			return (T < D.T);
+		}
+		else
+		{
+			return (Q0 < D.Q0);
+		}
 	}
 };
 
@@ -50,7 +63,7 @@ public:
 	bool quite;
 private:
 	bool check(const state& t);
-	std::vector<Trnasition> Trans;
+	std::vector<Transition> Trans;
 	//std::vector<state> initial;
 	std::vector<state> F;
 	std::vector<state> Q;

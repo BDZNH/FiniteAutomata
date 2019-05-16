@@ -78,7 +78,7 @@ bool FiniteAutomata::analy(std::string str)
 	i = str.find("Transitions =");
 	assert(i != -1);
 	i = i + 14;
-	Trnasition T1;
+	Transition T1;
 	//std::string lable;
 	bool flag = false;// 标记是否是目标状态
 
@@ -174,6 +174,10 @@ bool FiniteAutomata::analy(std::string str)
 		}
 		i++;
 	}
+
+	std::sort(F.begin(), F.end());
+
+	std::sort(Trans.begin(), Trans.end());
 
 	return false;
 }
@@ -285,7 +289,7 @@ std::istream& operator>>(std::istream& input, FiniteAutomata& D)
 		std::cout << "Example: 2 0 1 (for transition labeled 0 from state 2 to state 1).  :" << std::endl;
 	}
 	
-	Trnasition trans;
+	Transition trans;
 	
 	// 输入转移关系
 	while (input >> trans.Q0)
