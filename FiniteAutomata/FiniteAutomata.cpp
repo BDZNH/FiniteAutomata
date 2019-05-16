@@ -1,10 +1,14 @@
 ﻿#include "FiniteAutomata.h"
 
 
-
 FiniteAutomata::FiniteAutomata()
 {
 	quite = false;
+}
+
+FiniteAutomata::FiniteAutomata(std::string & str)
+{
+	analy(str);
 }
 
 
@@ -15,6 +19,168 @@ FiniteAutomata::~FiniteAutomata()
 size_t FiniteAutomata::size()
 {
 	return Q.size();
+}
+
+// 将 FIRE engine 的输出解析成为当前项目可以识别的格式。
+bool FiniteAutomata::analy(std::string str)  
+{
+	theFA = str;
+	size_t len = str.size();
+	size_t i = 0;
+	
+	// 解析状态数量
+	i = str.find("Q =");
+	assert(i != -1);
+	std::string temp;
+	std::stringstream ss;
+	while (str.at(i) != ',' && i < len)
+	{
+		i++;
+	}
+	while (str.at(i) != ')' && i < len)
+	{
+		temp.push_back(str.at(i));
+		i++;
+	}
+	ss << temp;
+	ss >> num_state;
+	ss.str("");
+	temp = "";
+
+
+	// 解析结束状态集合
+	i = str.find("F = {");
+	assert(i != -1);
+	i = i + 6;
+	state n;
+	bool flagf = false;
+	while (str.at(i) != '}' && i < len)
+	{
+		if (str.at(i) == ' '&& flagf)
+		{
+			std::stringstream ss;
+			ss << temp;
+			ss >> n;
+			F.push_back(n);
+			ss.str("");
+			temp = "";
+			flagf = false;
+		}
+		else
+		{
+			flagf = true;
+			temp.push_back(str.at(i));
+		}
+		i++;
+	}
+	
+	// 解析转移状态
+	i = str.find("Transitions =");
+	assert(i != -1);
+	i = i + 14;
+	Trnasition T1;
+	//std::string lable;
+	bool flag = false;// 标记是否是目标状态
+
+	bool special = false;
+	std::vector<label> la;
+	bool secondsymbol = false;
+	//state dest;
+	while (i<len)
+	{
+		if (str.at(i) == '[')
+		{
+			special = true;
+		}
+		if (special)
+		{
+			if (str.at(i) == ']')
+			{
+				flag = true;
+			}
+			else if (str.at(i) == '\'' && secondsymbol && !flag) //第二次遇到字符 '
+			{
+				label n = atoi(temp.c_str());
+				la.push_back(n);
+				temp = "";
+				secondsymbol = false;
+			}
+			else if (str.at(i) == '\'' && !secondsymbol && !flag) // 第一次遇到字符 '
+			{
+				secondsymbol = true;
+			}
+			else if (str.at(i) == '\'' && secondsymbol && flag) //第二次遇到字符 '
+			{
+				T1.Q1 = atoi(temp.c_str());
+				temp = "";
+				secondsymbol = false;
+			}
+			else if (str.at(i) == '\'' && !secondsymbol && flag) // 第一次遇到字符 '
+			{
+				secondsymbol = true;
+			}
+			else if (str.at(i) == '}')  // 结束当前状态的转移关系。
+			{
+				special = false;
+				flag = false;
+				secondsymbol = false;
+				for (auto iter = la.begin(); iter != la.end(); iter++)
+				{
+					T1.T = *iter;
+					Trans.push_back(T1);
+				}
+			}
+			else if (str.at(i) >= '0' && str.at(i) <= '9')
+			{
+				temp.push_back(str.at(i));
+			}
+		}
+		else
+		{
+			if (str.at(i) == '-' && str.at(i + 1) == '>' && !flag)
+			{
+				T1.Q0 = atoi(temp.c_str());
+				temp = "";
+				
+			}
+			else if (str.at(i) == '\'' && str.at(i + 1) == '-')
+			{
+				T1.T = atoi(temp.c_str());
+				ss.str("");
+				temp = "";
+				flag = true;
+			}
+			else if (str.at(i) == '\'' && str.at(i - 1) == ' ')
+			{
+				temp = "";
+				i++;
+				continue;
+			}
+			else if (str.at(i) == ' ' && str.at(i - 1) >= '0' && str.at(i - 1) <= '9')
+			{
+				T1.Q1 = atoi(temp.c_str());
+				ss.str("");
+				temp = "";
+				Trans.push_back(T1);
+			}
+			else if (str.at(i) == '}')
+			{
+				flag = false;
+			}
+			else if (str.at(i) >= '0' && str.at(i) <= '9')
+			{
+				temp.push_back(str.at(i));
+			}
+		}
+		i++;
+	}
+
+	return false;
+}
+
+std::string FiniteAutomata::FA()
+{
+	return theFA;
 }
 
 bool FiniteAutomata::perform()
@@ -43,6 +209,28 @@ bool FiniteAutomata::perform(char * filepath)
 	}
 	ofile << (*this);
 	ofile.close();
+	return true;
+}
+
+bool FiniteAutomata::operator==(FiniteAutomata & D)
+{
+	if (num_state != D.num_state)
+		return false;
+	if (F.size() != D.F.size())
+		return false;
+	for (auto iter = F.begin(), iter2 = D.F.begin() ; iter != F.end() && iter2 != D.F.end(); iter++,iter2++)
+	{
+		if (*iter != *iter2)
+			return false;
+	}
+
+	if (Trans.size() != D.Trans.size())
+		return false;
+	for (auto iter = Trans.begin(), iter2 = D.Trans.begin(); iter != Trans.end() && iter2 != D.Trans.end(); iter++, iter2++)
+	{
+		if (*iter != *iter2)
+			return false;
+	}
 	return true;
 }
 
