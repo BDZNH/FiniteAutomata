@@ -6,9 +6,18 @@ FiniteAutomata::FiniteAutomata()
 	quite = false;
 }
 
-FiniteAutomata::FiniteAutomata(std::string & str)
+FiniteAutomata::FiniteAutomata(std::string str)
 {
-	analy(str);
+	analyze(str);
+}
+
+FiniteAutomata::FiniteAutomata(DFA & dfa)
+{
+	std::stringstream ss;
+	ss << dfa;
+	std::string temp = ss.str();
+	analyze(temp);
+	ss.str("");
 }
 
 
@@ -16,13 +25,25 @@ FiniteAutomata::~FiniteAutomata()
 {
 }
 
+FiniteAutomata & FiniteAutomata::reconstruct(std::string str)
+{
+	this->Trans.clear();
+	this->F.clear();
+	this->Q.clear();
+	this->V.clear();
+	this->theFA = "";
+	this->num_state = 0;
+	analyze(str);
+	return (*this);
+}
+
 size_t FiniteAutomata::size()
 {
-	return Q.size();
+	return num_state;
 }
 
 // 将 FIRE engine 的输出解析成为当前项目可以识别的格式。
-bool FiniteAutomata::analy(std::string str)  
+bool FiniteAutomata::analyze(std::string& str)
 {
 	theFA = str;
 	size_t len = str.size();
@@ -37,6 +58,7 @@ bool FiniteAutomata::analy(std::string str)
 	{
 		i++;
 	}
+	i++;
 	while (str.at(i) != ')' && i < len)
 	{
 		temp.push_back(str.at(i));
@@ -80,7 +102,7 @@ bool FiniteAutomata::analy(std::string str)
 	i = i + 14;
 	Transition T1;
 	//std::string lable;
-	bool flag = false;// 标记是否是目标状态
+	bool flag = false;// 标记是否是目标状态，用来区分是 label 还是 deststate
 
 	bool special = false;
 	std::vector<label> la;
@@ -92,30 +114,30 @@ bool FiniteAutomata::analy(std::string str)
 		{
 			special = true;
 		}
-		if (special)
+		if (special)  // 针对类似 2->{ ['0','1']->2 }  的 label 在一起的情况
 		{
 			if (str.at(i) == ']')
 			{
 				flag = true;
 			}
-			else if (str.at(i) == '\'' && secondsymbol && !flag) //第二次遇到字符 '
+			else if (str.at(i) == '\'' && secondsymbol && !flag) //第二次遇到字符中括号内的 ' 
 			{
 				label n = atoi(temp.c_str());
 				la.push_back(n);
 				temp = "";
 				secondsymbol = false;
 			}
-			else if (str.at(i) == '\'' && !secondsymbol && !flag) // 第一次遇到字符 '
+			else if (str.at(i) == '\'' && !secondsymbol && !flag) // 第一次遇到字符中括号内的 '
 			{
 				secondsymbol = true;
 			}
-			else if (str.at(i) == '\'' && secondsymbol && flag) //第二次遇到字符 '
+			else if (str.at(i) == ' ' && (str.at(i-1) >= '0' && str.at(i-1) <= '9') && secondsymbol && flag) //提取目标状态
 			{
-				T1.Q1 = atoi(temp.c_str());
+				T1.stdest = atoi(temp.c_str());
 				temp = "";
 				secondsymbol = false;
 			}
-			else if (str.at(i) == '\'' && !secondsymbol && flag) // 第一次遇到字符 '
+			else if (str.at(i) == '-' && str.at(i+1) == '>' && !secondsymbol && flag) // 第一次遇到字符 '
 			{
 				secondsymbol = true;
 			}
@@ -129,17 +151,19 @@ bool FiniteAutomata::analy(std::string str)
 					T1.T = *iter;
 					Trans.push_back(T1);
 				}
+				temp = "";
+				la.clear();
 			}
 			else if (str.at(i) >= '0' && str.at(i) <= '9')
 			{
 				temp.push_back(str.at(i));
 			}
 		}
-		else
+		else  //  针对类似 1->{ '0'->1  '1'->2 }  的 label 不在一起的情况
 		{
 			if (str.at(i) == '-' && str.at(i + 1) == '>' && !flag)
 			{
-				T1.Q0 = atoi(temp.c_str());
+				T1.stprime = atoi(temp.c_str());
 				temp = "";
 				
 			}
@@ -158,7 +182,7 @@ bool FiniteAutomata::analy(std::string str)
 			}
 			else if (str.at(i) == ' ' && str.at(i - 1) >= '0' && str.at(i - 1) <= '9')
 			{
-				T1.Q1 = atoi(temp.c_str());
+				T1.stdest = atoi(temp.c_str());
 				ss.str("");
 				temp = "";
 				Trans.push_back(T1);
@@ -166,6 +190,7 @@ bool FiniteAutomata::analy(std::string str)
 			else if (str.at(i) == '}')
 			{
 				flag = false;
+				temp = "";
 			}
 			else if (str.at(i) >= '0' && str.at(i) <= '9')
 			{
@@ -190,6 +215,7 @@ std::string FiniteAutomata::FA()
 bool FiniteAutomata::perform()
 {
 	// 输出数据到默认的文件“FA.ADS”
+	assert(num_state > 0);
 	std::ofstream ofile;
 	ofile.open("FA.ADS");
 	if (!ofile.is_open())
@@ -202,10 +228,13 @@ bool FiniteAutomata::perform()
 	return true;
 }
 
-bool FiniteAutomata::perform(char * filepath)
+
+
+bool FiniteAutomata::perform(std::string filepath)
 {
+	assert(num_state > 0);
 	std::ofstream ofile;
-	ofile.open(filepath);
+	ofile.open(filepath.c_str());
 	if (!ofile.is_open())
 	{
 		std::cout << "Can't open file: " << filepath << std::endl;
@@ -214,6 +243,29 @@ bool FiniteAutomata::perform(char * filepath)
 	ofile << (*this);
 	ofile.close();
 	return true;
+}
+
+bool FiniteAutomata::perform(DFA & dfa, std::string filepath)
+{
+	clear();
+	std::string temp;
+	std::stringstream ss;
+	ss << dfa;
+	temp = ss.str();
+	analyze(temp);
+	perform(filepath);
+	return true;
+}
+
+FiniteAutomata& FiniteAutomata::clear()
+{
+	this->Trans.clear();
+	this->F.clear();
+	this->Q.clear();
+	this->V.clear();
+	this->theFA = "";
+	this->num_state = 0;
+	return (*this);
 }
 
 bool FiniteAutomata::operator==(FiniteAutomata & D)
@@ -292,24 +344,24 @@ std::istream& operator>>(std::istream& input, FiniteAutomata& D)
 	Transition trans;
 	
 	// 输入转移关系
-	while (input >> trans.Q0)
+	while (input >> trans.stprime)
 	{
-		if (trans.Q0 == -1)
+		if (trans.stprime == -1)
 			break;
-		input >> trans.T >> trans.Q1;
-		if (D.check(trans.Q0) && D.check(trans.T) && D.check(trans.Q1)) //如果输入的转移关系有效
+		input >> trans.T >> trans.stdest;
+		if (D.check(trans.stprime) && D.check(trans.T) && D.check(trans.stdest)) //如果输入的转移关系有效
 		{
 			// 将状态存入状态集
 			D.Trans.push_back(trans);
-			result = std::find(D.Q.begin(), D.Q.end(), trans.Q0);
+			result = std::find(D.Q.begin(), D.Q.end(), trans.stprime);
 			if (result == D.Q.end())
 			{
-				D.Q.push_back(trans.Q0);
+				D.Q.push_back(trans.stprime);
 			}
-			result = std::find(D.Q.begin(), D.Q.end(), trans.Q1);
+			result = std::find(D.Q.begin(), D.Q.end(), trans.stdest);
 			if (result == D.Q.end())
 			{
-				D.Q.push_back(trans.Q1);
+				D.Q.push_back(trans.stdest);
 			}
 
 			// 将“输入字符”保存
@@ -321,11 +373,11 @@ std::istream& operator>>(std::istream& input, FiniteAutomata& D)
 		}
 		else
 		{
-			std::cout << "Invalid argument: " << trans.Q0 << " " << trans.T << " " << trans.Q1 << std::endl;
+			std::cout << "Invalid argument: " << trans.stprime << " " << trans.T << " " << trans.stdest << std::endl;
 		}
-		trans.Q0 = 0;
+		trans.stprime = 0;
 		trans.T = 0;
-		trans.Q1 = 0;
+		trans.stdest = 0;
 	}
 	return input;
 }
@@ -337,17 +389,23 @@ std::ostream & operator<<(std::ostream & output, FiniteAutomata & D)
 	output << "State size (State set will be (0,1....,size-1)):\n# <-- Enter state size, in range 0 to 2000000, on line below." << std::endl;
 	output << D.num_state << std::endl;
 	output << "\nMarker states:\n# <-- Enter marker states, one per line.\n# To mark all states, enter *.\n# If no marker states, leave line blank.\n# End marker list with blank line." << std::endl;
-	auto it = D.F.begin();
-	for (; it != D.F.end(); ++it)
+	
+	for (auto it = D.F.begin(); it != D.F.end(); ++it)
 	{
 		output << *it << std::endl;
 	}
 	output << "\nVocal states:\n# <-- Enter vocal output states, one per line.\n# Format: State  Vocal_Output.Vocal_Output in range 10 to 99.\n# Example : 0 10\n# If no vocal states, leave line blank.\n# End vocal list with blank line.\n" << std::endl;
 	output << "Transitions:\n# <-- Enter transition triple, one per line.\n# Format: Exit_(Source)_State  Transition_Label  Entrance_(Target)_State.\n# Transition_Label in range 0 to 999.\n# Example: 2 0 1 (for transition labeled 0 from state 2 to state 1)." << std::endl;
-	//auto itt = Trans.begin();
-	for (size_t i = 0; i < D.Trans.size(); ++i)
+	////auto itt = Trans.begin();
+	//for (size_t i = 0; i < D.Trans.size(); ++i)
+	//{
+	//	output << D.Trans[i].Q0 << " " << D.Trans[i].T << " " << D.Trans[i].stdest << std::endl;
+	//}
+
+	for (auto iter = D.Trans.begin(); iter != D.Trans.end(); iter++)
 	{
-		output << D.Trans[i].Q0 << " " << D.Trans[i].T << " " << D.Trans[i].Q1 << std::endl;
+		output << iter->stprime << " " << iter->T << " " << iter->stdest << std::endl;
 	}
+	
 	return output;
 }
