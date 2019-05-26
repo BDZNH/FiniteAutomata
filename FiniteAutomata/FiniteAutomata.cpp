@@ -48,7 +48,7 @@ bool FiniteAutomata::analyze(std::string& str)
 	theFA = str;
 	size_t len = str.size();
 	size_t i = 0;
-	
+
 	// 解析状态数量
 	i = str.find("Q =");
 	assert(i != -1);
@@ -95,7 +95,7 @@ bool FiniteAutomata::analyze(std::string& str)
 		}
 		i++;
 	}
-	
+
 	// 解析转移状态
 	i = str.find("Transitions =");
 	assert(i != -1);
@@ -108,7 +108,7 @@ bool FiniteAutomata::analyze(std::string& str)
 	std::vector<label> la;
 	bool secondsymbol = false;
 	//state dest;
-	while (i<len)
+	while (i < len)
 	{
 		if (str.at(i) == '[')
 		{
@@ -131,13 +131,13 @@ bool FiniteAutomata::analyze(std::string& str)
 			{
 				secondsymbol = true;
 			}
-			else if (str.at(i) == ' ' && (str.at(i-1) >= '0' && str.at(i-1) <= '9') && secondsymbol && flag) //提取目标状态
+			else if (str.at(i) == ' ' && (str.at(i - 1) >= '0' && str.at(i - 1) <= '9') && secondsymbol && flag) //提取目标状态
 			{
 				T1.stdest = atoi(temp.c_str());
 				temp = "";
 				secondsymbol = false;
 			}
-			else if (str.at(i) == '-' && str.at(i+1) == '>' && !secondsymbol && flag) // 第一次遇到字符 '
+			else if (str.at(i) == '-' && str.at(i + 1) == '>' && !secondsymbol && flag) // 第一次遇到字符 '
 			{
 				secondsymbol = true;
 			}
@@ -165,7 +165,7 @@ bool FiniteAutomata::analyze(std::string& str)
 			{
 				T1.stprime = atoi(temp.c_str());
 				temp = "";
-				
+
 			}
 			else if (str.at(i) == '\'' && str.at(i + 1) == '-')
 			{
@@ -207,9 +207,50 @@ bool FiniteAutomata::analyze(std::string& str)
 	return false;
 }
 
-std::string FiniteAutomata::FA()
+DFA FiniteAutomata::getDFA()
 {
-	return theFA;
+
+	DFA_components ret;
+
+	int i = num_state;
+	while (i--)
+	{
+		ret.Q.allocate();
+	}
+
+	ret.S.set_domain(ret.Q.size());
+	ret.S.add(0);
+
+	ret.F.set_domain(ret.Q.size());
+	for (auto it = this->F.begin(); it != this->F.end(); it++)
+	{
+		ret.F.add((*it));
+	}
+
+	ret.T.set_domain(ret.Q.size());
+
+	// 用来解析 label 
+	std::stringstream ss;
+	std::string temp;
+
+	for (auto it = this->Trans.begin(); it != this->Trans.end(); it++)
+	{
+		ss << (*it).T;
+		temp = ss.str();
+		assert(temp.size() == 1);
+		assert(temp.at(0) >= '0'&&temp.at(0) <= '9');
+		assert(it->stprime >= 0 && it->stprime < num_state);
+		assert(it->stdest >= 0 && it->stdest < num_state);
+		ret.T.add_transition(it->stprime, temp.at(0), it->stdest);
+
+		// 用完需要清空
+		ss.str("");
+		temp = "";
+	}
+
+
+	DFA dfa(ret);
+	return dfa;
 }
 
 bool FiniteAutomata::perform()
@@ -274,7 +315,7 @@ bool FiniteAutomata::operator==(FiniteAutomata & D)
 		return false;
 	if (F.size() != D.F.size())
 		return false;
-	for (auto iter = F.begin(), iter2 = D.F.begin() ; iter != F.end() && iter2 != D.F.end(); iter++,iter2++)
+	for (auto iter = F.begin(), iter2 = D.F.begin(); iter != F.end() && iter2 != D.F.end(); iter++, iter2++)
 	{
 		if (*iter != *iter2)
 			return false;
@@ -304,17 +345,17 @@ std::istream& operator>>(std::istream& input, FiniteAutomata& D)
 	{
 		std::cout << "input the number of state of the FA (type: unsigned int):" << std::endl;
 	}
-	
+
 	input >> D.num_state;
 	state temp;
-	
+
 	std::vector<state>::iterator result;
 	std::vector<label>::iterator result2;
 	if (!D.quite)
 	{
 		std::cout << "input the accepted state of the FA(type: unsigned int ,end with -1):" << std::endl;
 	}
-	
+
 	while (input >> temp)
 	{
 		if (temp == -1)
@@ -340,9 +381,9 @@ std::istream& operator>>(std::istream& input, FiniteAutomata& D)
 		std::cout << "input the transition relation of the FA(type: unsigned int ,end with -1)" << std::endl;
 		std::cout << "Example: 2 0 1 (for transition labeled 0 from state 2 to state 1).  :" << std::endl;
 	}
-	
+
 	Transition trans;
-	
+
 	// 输入转移关系
 	while (input >> trans.stprime)
 	{
@@ -389,23 +430,18 @@ std::ostream & operator<<(std::ostream & output, FiniteAutomata & D)
 	output << "State size (State set will be (0,1....,size-1)):\n# <-- Enter state size, in range 0 to 2000000, on line below." << std::endl;
 	output << D.num_state << std::endl;
 	output << "\nMarker states:\n# <-- Enter marker states, one per line.\n# To mark all states, enter *.\n# If no marker states, leave line blank.\n# End marker list with blank line." << std::endl;
-	
+
 	for (auto it = D.F.begin(); it != D.F.end(); ++it)
 	{
 		output << *it << std::endl;
 	}
 	output << "\nVocal states:\n# <-- Enter vocal output states, one per line.\n# Format: State  Vocal_Output.Vocal_Output in range 10 to 99.\n# Example : 0 10\n# If no vocal states, leave line blank.\n# End vocal list with blank line.\n" << std::endl;
 	output << "Transitions:\n# <-- Enter transition triple, one per line.\n# Format: Exit_(Source)_State  Transition_Label  Entrance_(Target)_State.\n# Transition_Label in range 0 to 999.\n# Example: 2 0 1 (for transition labeled 0 from state 2 to state 1)." << std::endl;
-	////auto itt = Trans.begin();
-	//for (size_t i = 0; i < D.Trans.size(); ++i)
-	//{
-	//	output << D.Trans[i].Q0 << " " << D.Trans[i].T << " " << D.Trans[i].stdest << std::endl;
-	//}
 
 	for (auto iter = D.Trans.begin(); iter != D.Trans.end(); iter++)
 	{
 		output << iter->stprime << " " << iter->T << " " << iter->stdest << std::endl;
 	}
-	
+
 	return output;
 }
